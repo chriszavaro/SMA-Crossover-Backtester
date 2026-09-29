@@ -48,6 +48,35 @@ class SimpleMovingAverageStrategy:
 
         return df
 
+class BacktestEngine:
+    """Simulates trading execution and measures portfolio performance metrics."""
+    def __init__(self, initial_capital: float = 10000.0):
+        self.initial_capital = initial_capital
+
+    def run_backtest(self, processed_data: pd.Dateframe):
+        """Calculates returns based on strategy positions."""
+        df = processed_data.copy()
+
+        #Calculate daily percentage returns of the underlying asset
+        df["Market_Returns"] = df["Close"].pct_change()
+
+        #Calculate strategy returns based on positions
+        df["Strategy_Returns"] = df["Position"] * df["Market_Returns"]
+
+        # Compute cumulative growth using standard compounding math
+        df['Cumulative_Market'] = (1.0 + df['Market_Returns'].fillna(0)).cumprod()
+        df['Cumulative_Strategy'] = (1.0 + df['Strategy_Returns'].fillna(0)).cumprod()
+
+        # Calculate final cash values
+        final_market_value = self.initial_capital * df['Cumulative_Market'].iloc[-1]
+        final_strategy_value = self.initial_capital * df['Cumulative_Strategy'].iloc[-1]
+
+        return {
+            "Initial Capital": self.initial_capital,
+            "Final Market Value": round(final_market_value, 2),
+            "Final Strategy Value": round(final_strategy_value, 2),
+            "Strategy Outperformance (%)": round(((final_strategy_value - final_market_value) / final_market_value) * 100, 2)
+        }
 
 
 
@@ -64,4 +93,11 @@ if __name__ == "__main__":
     strategy = SimpleMovingAverageStrategy(short_window=10, long_window=200)
     signals_df = strategy.generate_signals(raw_data)
 
-    print(signals_df)
+    #3. Backtest Execution
+    backtest_engine = BacktestEngine(initial_capital=10000.0)
+    backtest_results = backtest_engine.run_backtest(signals_df)
+
+    print("\n" + "="*30 + " BACKTEST RESULTS " + "="*30)
+    for metric, value in backtest_results.items():
+        print(f"{metric:<30}: {value}")
+    print("="*78)

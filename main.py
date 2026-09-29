@@ -81,9 +81,23 @@ class BacktestEngine:
 
 
 if __name__ == "__main__":
-    TICKER = "AAPL"
-    START = "2020-01-01"
-    END = "2024-01-01"
+    print("="*30 + " BACKTEST CONFIGURATION " + "="*30)
+
+    # 1. Gather Text String Inputs
+    # The input() function stops execution and waits for the user to hit Enter.
+    TICKER = input("Enter Stock Ticker (e.g., AAPL, NVDA, MSFT): ").strip().upper()
+    START = input("Enter Start Date (YYYY-MM-DD): ").strip()
+    END = input("Enter End Date (YYYY-MM-DD): ").strip()
+    
+    # 2. Gather Integer Inputs with Type Casting
+    # input() always captures data as text strings. We wrap them in int() 
+    # to convert them into numbers so pandas can use them for math windows.
+    SHORT_WINDOW = int(input("Enter Short Moving Average Window (e.g., 10): ").strip())
+    LONG_WINDOW = int(input("Enter Long Moving Average Window (e.g., 50): ").strip())
+
+    print("="*84 + "\n")
+
+
 
     #1. Pipeline Ingestion Engine
     data_handler = MarketDataHandler(ticker=TICKER, start_date=START, end_date=END)
